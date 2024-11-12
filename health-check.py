@@ -8,6 +8,8 @@ import requests
 
 REQUESTS_DELAY = 15 # How often the program checks the endpoints
 
+domains = {} # The endpoint results for each domain
+
 # State of the site endpoint
 class SiteState(Enum):
   UP = 1
@@ -43,23 +45,24 @@ def check_site_health(endpoints):
 
 # Logs the final result of endpoint tests based on latency and status code, grouping endpoints by domain
 def log_results(health_results):
-  domains = {}
   for result in health_results:
     # Set state of result 
     result['state'] = SiteState.UP if 200 <= result['status_code'] < 300 and result['latency'] < .5 else SiteState.DOWN 
+
+    # Add domain if not available
+    if result['domain'] not in domains:
+      domains[result['domain']] = {'up':0,'down':0}
+
     # Add result to domain
-    if result['domain'] in domains:
-      domains[result['domain']].append(result)
-    else:
-      domains[result['domain']] = [result]
+    if result['state'] == SiteState.UP:
+      domains[result['domain']]['up'] += 1
+    elif result['state'] == SiteState.DOWN:
+      domains[result['domain']]['down'] += 1
+      
   
-  # Calculate percentage of available endpoints for each domain
+  # Calculate percentage of available endpoints for each domain since program began
   for domain in domains.keys():
-    up_count = 0
-    for result in domains[domain]:
-      if result['state'] == SiteState.UP:
-        up_count += 1
-    percent = int(100 * up_count / len(domains[domain]))
+    percent = int(100 * domains[domain]['up'] / (domains[domain]['up'] + domains[domain]['down']))
     # Log results
     print(domain + " has " + str(percent) +"% availability percentage")
 
