@@ -8,6 +8,7 @@ import requests
 
 REQUESTS_DELAY = 15 # How often the program checks the endpoints
 
+# State of the site endpoint
 class SiteState(Enum):
   UP = 1
   DOWN = 2
@@ -20,6 +21,7 @@ def read_file(path):
     except yaml.YAMLError as exc:
       print(exc)
 
+# Makes a request at each endpoints and returns the resulting latency, status code, and domain name
 def check_site_health(endpoints):
   health_results = []
   for endpoint in endpoints:
@@ -39,6 +41,7 @@ def check_site_health(endpoints):
 
   return health_results
 
+# Logs the final result of endpoint tests based on latency and status code, grouping endpoints by domain
 def log_results(health_results):
   domains = {}
   for result in health_results:
@@ -60,6 +63,7 @@ def log_results(health_results):
     # Log results
     print(domain + " has " + str(percent) +"% availability percentage")
 
+# Reads in a yaml file and tests the configured endpoints once every REQUESTS_DELAY seconds
 async def main():
   # If the failed to input exactly 1 argument
   if len(sys.argv) != 2:
